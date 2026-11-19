@@ -1,67 +1,89 @@
-const button = document.querySelector('.button-add-task')  // Pegando o botao no documento;
-const input = document.querySelector('.input-task')  // Pegando o input no documeto;
-const listaCompleta = document.querySelector('.list-task')  // Pegando a lista para inserir as tasks;
+const button = document.querySelector(".button-add-task");
+const input = document.querySelector(".input-task");
+const listaCompleta = document.querySelector(".list-task");
+const STORAGE_KEY = "lista"; // Mantém compatibilidade com as tarefas já salvas.
+let minhaListaDeItens = [];
 
-let minhaListaDeItens = []  // Array onde sera armazendo os inputs;
-
-// Funcao para pegar o valor do input;
-function adicionarNovaTarefa(){
-    minhaListaDeItens.push({tarefa: input.value, concluida: false})  // Adiconando dois parametros, o valor da task e se ela foi concluida ou nao;
-
-    input.value = ''  // Fazendo o input ficar vazio;
-
-    mostraTarefa()
+function salvarTarefas() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(minhaListaDeItens));
+  } catch (error) {
+    console.warn("Não foi possível salvar as tarefas localmente.", error);
+  }
 }
 
-function mostraTarefa(){
-    let novaLI = ''
+function mostrarTarefas() {
+  listaCompleta.replaceChildren();
+  minhaListaDeItens.forEach((item, index) => {
+    const linha = document.createElement("li");
+    linha.className = item.concluida ? "task done" : "task";
 
-    // forEach passa por cada item da lista;
-    minhaListaDeItens.forEach((item, index) => {  // index e a posicao do intem;
-        // Caso concluida seja verdadeira ele ira adicionar uma nova classe e mudar a cor;
-        novaLI = novaLI + `
-        <li class="task ${item.concluida && 'done'}">
-            <img src="src/img/checked.png" alt="check-na-tarefa" onclick="concluirTarefa(${index})">
-            <p>${item.tarefa}</p>
-            <img src="src/img/trash.png" alt="tarefa-para-o-lixo" onclick="deletarItem(${index})">
-        </li>
-        `
-    })
+    const concluir = document.createElement("button");
+    concluir.type = "button";
+    concluir.setAttribute("aria-label", item.concluida ? "Marcar tarefa como pendente" : "Concluir tarefa");
+    concluir.dataset.action = "toggle";
+    concluir.dataset.index = String(index);
+    const check = document.createElement("img");
+    check.src = "src/img/checked.png";
+    check.alt = "";
+    concluir.append(check);
 
-    // Vai pegar os valores que estao no novaLI e inserir no HTML;
-    listaCompleta.innerHTML = novaLI
+    const texto = document.createElement("p");
+    texto.textContent = item.tarefa; // Texto do usuário nunca é interpretado como HTML.
 
-    // Vamos estar armazendo os itens no localstorage, usando JSOn.stringify para converter os objetos da lista em string;
-    localStorage.setItem('lista', JSON.stringify(minhaListaDeItens))
+    const excluir = document.createElement("button");
+    excluir.type = "button";
+    excluir.setAttribute("aria-label", "Excluir tarefa");
+    excluir.dataset.action = "delete";
+    excluir.dataset.index = String(index);
+    const lixeira = document.createElement("img");
+    lixeira.src = "src/img/trash.png";
+    lixeira.alt = "";
+    excluir.append(lixeira);
+
+    linha.append(concluir, texto, excluir);
+    listaCompleta.append(linha);
+  });
+  salvarTarefas();
 }
 
-// Funcao para apagar os itens;
-function deletarItem(index){
-    minhaListaDeItens.splice(index, 1)  // Permite deletar as coisas dentro do array;
-
-    mostraTarefa()  // Apos remover chamar a funcao para atualizar as tasks;
+function adicionarNovaTarefa() {
+  const tarefa = input.value.trim();
+  if (!tarefa) return;
+  minhaListaDeItens.push({ tarefa, concluida: false });
+  input.value = "";
+  mostrarTarefas();
+  input.focus();
 }
 
-function concluirTarefa(index){
-    minhaListaDeItens[index].concluida = !minhaListaDeItens[index].concluida  // Vamos estar invertendo os valores;
-
-    mostraTarefa()  // Atualizando os valores;
-}
-
-// Pegando os valores salvos no localstorage e mostrando na tela
-function recarregarTarefa(){
-    const tarefasDoLocalStorage = localStorage.getItem('lista')
-
-    // So vai fazer isso se tiver algum item no local;
-    if (tarefasDoLocalStorage) {
-        minhaListaDeItens = JSON.parse(tarefasDoLocalStorage)
-        // Transformando novamente em objetos;
+function recarregarTarefas() {
+  try {
+    const salvo = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    if (Array.isArray(salvo)) {
+      minhaListaDeItens = salvo.filter((item) =>
+        item && typeof item.tarefa === "string" && typeof item.concluida === "boolean"
+      );
     }
-
-    mostraTarefa()  // Mostrando as tarefas;
+  } catch (error) {
+    console.warn("Histórico local de tarefas inválido; iniciando lista vazia.", error);
+  }
+  mostrarTarefas();
 }
 
-// Verificando os eventos de click do botao referente ao valor do input;
-button.addEventListener('click', adicionarNovaTarefa)
-
-recarregarTarefa()  // Chamando a funcao parar recarregar as tarefas;
+button.addEventListener("click", adicionarNovaTarefa);
+input.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") adicionarNovaTarefa();
+});
+listaCompleta.addEventListener("click", (event) => {
+  const control = event.target.closest("button[data-action]");
+  if (!control || !listaCompleta.contains(control)) return;
+  const index = Number(control.dataset.index);
+  if (!Number.isInteger(index) || index < 0 || index >= minhaListaDeItens.length) return;
+  if (control.dataset.action === "delete") {
+    minhaListaDeItens.splice(index, 1);
+  } else if (control.dataset.action === "toggle") {
+    minhaListaDeItens[index].concluida = !minhaListaDeItens[index].concluida;
+  }
+  mostrarTarefas();
+});
+recarregarTarefas();
