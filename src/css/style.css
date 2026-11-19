@@ -55,11 +55,11 @@
 .task {
     background-color: #F2F2F2;
     box-shadow: 1px 4px 10px rgba(0, 0, 0, 0.2);
-    height: 50px;
+    min-height: 50px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 15px;
+    padding: 8px 15px;
     border-radius: 5px;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -82,7 +82,7 @@ button:focus-visible, input:focus-visible {
     outline-offset: 3px;
 }
 
-.task p { overflow-wrap: anywhere; flex: 1; padding: 0 8px; }
+.task p { overflow-wrap: anywhere; flex: 1; min-width: 0; padding: 0 8px; }
 @media (max-width: 520px) {
     .container { margin-top: 32px; }
     .button-add-task { float: none; margin-top: 10px; }
