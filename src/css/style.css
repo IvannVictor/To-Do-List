@@ -5,13 +5,13 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Bagel Fat One', cursive, sans-serif;
-    outline: none;
+
 }
 
 
 .container {
     background-color: #d1d1d1;
-    width: 500px;
+    width: min(500px, calc(100% - 32px));
     border-radius: 10px;
     padding: 20px;
     margin: 100px auto 0;
@@ -20,7 +20,7 @@
 .input-task {
     border: none;
     border-radius: 5px;
-    width: 300px;
+    width: min(300px, 100%);
     height: 40px;
     padding-left: 10px;;
 }
@@ -46,7 +46,7 @@
     opacity: 0.6;
 }
 
-.list-tasks {
+.list-task {
     width: 100%;
     list-style: none;
     margin-top: 30px;
@@ -55,11 +55,11 @@
 .task {
     background-color: #F2F2F2;
     box-shadow: 1px 4px 10px rgba(0, 0, 0, 0.2);
-    height: 50px;
+    min-height: 50px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 15px;
+    padding: 8px 15px;
     border-radius: 5px;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -68,12 +68,24 @@
 
 img {
     height: 25px;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
 }
 
-.task:hover img {
-    opacity: 1;
+.task button {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 6px;
+}
+
+button:focus-visible, input:focus-visible {
+    outline: 3px solid #003329;
+    outline-offset: 3px;
+}
+
+.task p { overflow-wrap: anywhere; flex: 1; min-width: 0; padding: 0 8px; }
+@media (max-width: 520px) {
+    .container { margin-top: 32px; }
+    .button-add-task { float: none; margin-top: 10px; }
 }
 
 .done {
